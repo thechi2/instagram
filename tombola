@@ -5,6 +5,86 @@
 </head>
 <body>
  
+ 
+ 
+ 
+ 
+ 
+ <?php
+// Pour éviter qu'une unique personne poste 50 fois dans le livre d'or, on va insérer un cookie
+setcookie("ip",$_SERVER['REMOTE_ADDR'],time()+.3600*60*90);
+ 
+// Si le cookie est égal à l'ip du client, alors on le stoppe
+if(isset($_COOKIE['ip']) && $_COOKIE['ip']==$_SERVER['REMOTE_ADDR'])
+{
+        echo "<h1>Vous ne pouvez émettre qu'un seul avis et vous l'avez déjà donné !</h1>";
+ 
+        // On stoppe le script
+        exit;
+}
+// Mettons le (futur) fichier dans une variable.
+$commentaires="messages.txt";
+ 
+// assignons nos 2 variables du formulaire, et on en profite pour les protéger des balises HTML
+$pseudo=htmlentities($_POST['pseudo']);
+$message=htmlentities($_POST['message']);
+ 
+//Pensons au retour à la ligne et aux stripslashes pour la variable $message
+$message=stripslashes(nl2br($message));
+ 
+// On met en place quelques conditions pour les cellules (nom et message)
+// On vérifie avant tout si le fichier existe : si ce n'est pas le cas, on le crée
+if(!is_file($commentaires))
+{
+        $verif=@fopen($commentaires,"w+");
+}
+ 
+// On vérifie que le login ou le message ne sont pas vide
+elseif (trim($message)=="" || trim($pseudo)=="")
+{
+        echo "Vous devez remplir tous les champs ! <a href="livredor.htm">Retour sur le livre d'or</a>";
+        
+        // On sort du script !
+        exit;
+}
+ 
+// Après ces quelques vérifications d'usage, on passe à l'exécution de ce formulaire
+ 
+        
+        // Si ok, on ouvre en écriture-enregistrement du fichier message.txt
+        $verif=@fopen($commentaires,"r+");
+                
+        // On analyse les anciennes données et on les stocke
+        $stock=@fread($verif,filesize($commentaires));
+        
+        // On met la date dans une variable
+        $date=date ("d/m/Y à H:i");
+        
+        // On paramètre le tout dans la variable $opinion
+        $opinion="<b>".$pseudo."</b> a écrit le : ".$date."<br />\n".$message."<br />\n<hr />";
+        
+        //On remet le curseur du fichier en début de ligne
+        rewind($verif);
+        
+        //On insère le nouveau commentaire
+        fputs($verif,$opinion." \n".$stock);
+        
+        //On clôt le fichier
+        fclose($verif);
+        
+        // On affiche le tout
+        readfile($commentaires);
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 <h1>Le Livre d'OR</h1>
  
 <!-- On commence le formulaire : pour le résultat on invoquera la page "message.php" grâce à l'attribut action de la balise form -->
